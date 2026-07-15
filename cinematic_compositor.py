@@ -1,10 +1,14 @@
+# Copyright (C) 2026 Rodrigo Amorim
+
 bl_info = {
     "name": "Custom Cinematic Compositor",
-    "author": "Antigravity AI / Origami Designer",
-    "version": (1, 1, 0),
+    "author": "Rodrigo Amorim",
+    "version": (1, 1, 1),
     "blender": (3, 0, 0),
     "location": "Compositor > Sidebar > Cinematic | 3D Viewport > Sidebar > Cinematic",
     "description": "Professional post-processing effects and film grading in Blender sidebar.",
+    "doc_url": "https://github.com/Champolinha/cinematic-compositor",
+    "tracker_url": "https://github.com/Champolinha/cinematic-compositor/issues",
     "category": "Compositing",
 }
 

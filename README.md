@@ -2,6 +2,8 @@
 
 Add-on para Blender que reúne controles de pós-processamento cinematográfico e color grading diretamente na barra lateral do Compositor e da Viewport 3D.
 
+Desenvolvido por **Rodrigo Amorim**.
+
 ## Recursos
 
 - Bloom, streaks e lens ghosts
@@ -43,4 +45,3 @@ Os testes de integração devem ser executados pelo próprio Blender, pois o mó
 ## Status
 
 O projeto está em desenvolvimento. A API de nodes do Blender pode variar entre versões; valide alterações nas versões do Blender que pretende suportar.
-
