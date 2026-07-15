@@ -1,0 +1,22 @@
+# Python / Blender caches
+__pycache__/
+*.py[cod]
+
+# Blender backup and recovery files
+*.blend1
+*.blend2
+*.blend@
+
+# Editors and operating systems
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Local environments and build artifacts
+.venv/
+venv/
+build/
+dist/
+*.zip
+
