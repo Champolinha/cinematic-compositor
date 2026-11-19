@@ -18,12 +18,20 @@ Desenvolvido por **Rodrigo Amorim**.
 
 ## Instalação
 
-1. Baixe o arquivo `cinematic_compositor.py`.
+1. Abra a [última release](https://github.com/Champolinha/cinematic-compositor/releases/latest) e baixe `cinematic_compositor.py` ou `cinematic_compositor-1.1.2.zip` em **Assets**.
 2. No Blender, abra **Edit > Preferences > Add-ons**.
 3. Use **Install from Disk** e selecione o arquivo baixado.
 4. Ative **Custom Cinematic Compositor**.
 
 O painel ficará disponível em **Compositor > Sidebar > Cinematic** e em **3D Viewport > Sidebar > Cinematic**.
+
+## Versão 1.1.2
+
+- Corrige a imagem preta causada por nós **Render Layers** sem uma cena associada.
+- Recupera automaticamente referências ausentes ao ativar o addon, abrir uma cena ou iniciar um render, preservando fontes válidas e ajustes existentes.
+- Identifica o nó Render Layers de forma compatível com o Blender 5.3.
+
+Validado no Blender 5.3.0 com render de teste e recuperação de referências ao renderizar e reabrir arquivos.
 
 ## Estrutura do projeto
 

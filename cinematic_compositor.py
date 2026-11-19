@@ -3,7 +3,7 @@
 bl_info = {
     "name": "Custom Cinematic Compositor",
     "author": "Rodrigo Amorim",
-    "version": (1, 1, 1),
+    "version": (1, 1, 2),
     "blender": (3, 0, 0),
     "location": "Compositor > Sidebar > Cinematic | 3D Viewport > Sidebar > Cinematic",
     "description": "Professional post-processing effects and film grading in Blender sidebar.",
@@ -13,6 +13,7 @@ bl_info = {
 }
 
 import bpy
+from bpy.app.handlers import persistent
 
 # ==========================================
 # NODE UTILITIES & SUPPORT FUNCTIONS
@@ -411,6 +412,31 @@ def get_or_create_output_node(node_tree):
         node = node_tree.nodes.new('CompositorNodeComposite')
     return node
 
+def repair_cinematic_render_layers(scene):
+    """Restore missing Render Layers scene references without changing valid sources."""
+    node_tree = get_scene_node_tree(scene)
+    if not node_tree:
+        return
+    if not any(n.type == 'GROUP' and n.node_tree and
+               n.node_tree.name == 'CinematicCompositorGroup'
+               for n in node_tree.nodes):
+        return
+    for node in node_tree.nodes:
+        if node.bl_idname != 'CompositorNodeRLayers':
+            continue
+        if node.scene is None:
+            node.scene = scene
+        source_scene = node.scene
+        if source_scene.view_layers and node.layer not in source_scene.view_layers:
+            node.layer = source_scene.view_layers[0].name
+
+
+@persistent
+def cinematic_repair_sources(*_args):
+    for scene in bpy.data.scenes:
+        repair_cinematic_render_layers(scene)
+
+
 def insert_cinematic_node(scene):
     """Inserts the Cinematic Compositor node group between the Render Layers and active Output."""
     node_tree = get_scene_node_tree(scene)
@@ -458,13 +484,17 @@ def insert_cinematic_node(scene):
             # Connect to render layers (create if missing to enable viewport preview in empty scenes)
             rlayers = None
             for n in node_tree.nodes:
-                if n.type == 'RLAYERS':
+                if n.bl_idname == 'CompositorNodeRLayers':
                     rlayers = n
                     break
             if not rlayers:
                 rlayers = node_tree.nodes.new('CompositorNodeRLayers')
                 rlayers.location = (cin_node.location.x - 300, cin_node.location.y)
                 
+            if rlayers.scene is None:
+                rlayers.scene = scene
+            if rlayers.scene.view_layers and rlayers.layer not in rlayers.scene.view_layers:
+                rlayers.layer = rlayers.scene.view_layers[0].name
             rlayers_out = get_socket(rlayers, "Image", is_input=False)
             if rlayers_out and len(cin_node.inputs) > 0:
                 node_tree.links.new(rlayers_out, cin_node.inputs[0])
@@ -483,6 +513,9 @@ def insert_cinematic_node(scene):
             viewer_input = get_socket(viewer_node, "Image", is_input=True)
             if viewer_input and len(cin_node.outputs) > 0:
                 node_tree.links.new(cin_node.outputs[0], viewer_input)
+
+    repair_cinematic_render_layers(scene)
+
 
 def remove_cinematic_node(scene):
     """Safely removes the Cinematic Compositor node group and restores direct connections."""
@@ -555,6 +588,7 @@ def set_glare_properties(glare_node, strength, threshold, size_or_fade=None, cou
 
 def update_nodes_from_properties(scene):
     """Synchronizes UI settings with the internal compositor nodes."""
+    repair_cinematic_render_layers(scene)
     settings = scene.cinematic_settings
     if not settings.enabled:
         return
@@ -1397,8 +1431,17 @@ def register():
     for cls in classes:
         bpy.utils.register_class(cls)
     bpy.types.Scene.cinematic_settings = bpy.props.PointerProperty(type=CinematicSettings)
+    for handlers in (bpy.app.handlers.load_post, bpy.app.handlers.render_pre):
+        if cinematic_repair_sources not in handlers:
+            handlers.append(cinematic_repair_sources)
+    bpy.app.timers.register(cinematic_repair_sources, first_interval=0.1)
 
 def unregister():
+    for handlers in (bpy.app.handlers.load_post, bpy.app.handlers.render_pre):
+        if cinematic_repair_sources in handlers:
+            handlers.remove(cinematic_repair_sources)
+    if bpy.app.timers.is_registered(cinematic_repair_sources):
+        bpy.app.timers.unregister(cinematic_repair_sources)
     for cls in reversed(classes):
         try:
             bpy.utils.unregister_class(cls)
